@@ -1,23 +1,13 @@
 import asyncio
 import logging
-import os
 
-from aiogram import Bot, Dispatcher
-from aiogram.fsm.storage.memory import MemoryStorage
-from dotenv import load_dotenv
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import app.handlers.commands as commands
+import app.handlers.forms as forms
+import app.handlers.inlines as inlines
+import app.handlers.texts as texts
 
-
-from app.handlers import commands, inlines, forms, texts
+from app.bot_setup import bot, dp, scheduler
 from app.database import db_start, get_user_list
-
-load_dotenv()
-bot_token = os.getenv('BOT_TOKEN')
-
-bot = Bot(token=bot_token)
-bot.echoed = False
-
-dp = Dispatcher(storage=MemoryStorage())
 
 
 async def send_daily_notification():
@@ -26,17 +16,17 @@ async def send_daily_notification():
         await bot.send_message(user['id'], "Не забудьте проверить уведомления!")
 
 
-async def on_startup(dispatcher: Dispatcher):
+async def on_startup():
     await db_start()
-    scheduler = AsyncIOScheduler()
     scheduler.add_job(send_daily_notification, 'cron', hour=9, minute=0, timezone='Europe/Moscow')
     scheduler.start()
 
 
 async def main():
-    dp.include_router(commands.router)
+    logging.basicConfig(level=logging.INFO)
     dp.include_router(inlines.router)
     dp.include_router(forms.router)
+    dp.include_router(commands.router)
     dp.include_router(texts.router)
 
     dp.startup.register(on_startup)
@@ -44,5 +34,4 @@ async def main():
     await dp.start_polling(bot, skip_updates=True)
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
     asyncio.run(main())

@@ -1,3 +1,5 @@
+import logging
+
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -18,7 +20,7 @@ class PhotoState(StatesGroup):
     waiting_for_photo = State()
 
 
-@router.message(Command("sign_in"))
+@router.message(Command("register"))
 async def start_questions(message: Message, state: FSMContext):
     await state.set_state(RegForm.name)
     await message.answer(
@@ -53,11 +55,15 @@ async def photo_command(message: Message, state: FSMContext):
     await message.answer("Отправьте фото пожалуйста.")
 
 
-@router.message(F.photo, PhotoState.waiting_for_photo)
+@router.message(PhotoState.waiting_for_photo)
 async def handle_photo(message: Message, state: FSMContext):
-    largest_photo = message.photo[-1]
-    await message.answer(f"Спасибо, фото получено\n "
-                         f"Ширина: {largest_photo.width} пикселей \n "
-                         f"Высота: {largest_photo.height} пикселей")
-    # Use bot.download_file_by_id(file_id, destination) to download the photo
+    print(message)
+    if message.photo:
+        largest_photo = message.photo[-1]
+        await message.answer(f"Спасибо, фото получено\n "
+                             f"Ширина: {largest_photo.width} пикселей \n "
+                             f"Высота: {largest_photo.height} пикселей")
+    else:
+        await message.answer("Произошла ошибка, попробуйте позже")
+        logging.error(f"Invalid file type")
     await state.clear()
