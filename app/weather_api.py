@@ -32,13 +32,24 @@ async def get_city_coordinates(city_name):
         'User-Agent': 'test_aiogram'
     }
 
+    max_retries = 5
+    backoff_factor = 1
+
     async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(url, params=params, headers=headers, timeout=10.0)
-            if response.status_code == 200:
-                return {"latitude": response.json()[0]['lat'], 'longitude': response.json()[0]['lon']}
-        except Exception as e:
-            logger.error(f"ReadError: {str(e)}")
+        for attempt in range(max_retries):
+            try:
+                response = await client.get(url, params=params, headers=headers, timeout=10.0)
+                if response.status_code == 200:
+                    return {"latitude": response.json()[0]['lat'], 'longitude': response.json()[0]['lon']}
+            except httpx.RequestError as e:
+                logger.error(f"RequestError: {str(e)} \n attempt: {attempt}")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(backoff_factor * (2 ** attempt))
+                else:
+                    raise
+            except Exception as e:
+                logger.error(f"ReadError: {str(e)} \n attempt: {attempt}")
+                raise
 
 
 async def get_location_weather(coordinates: dict):
@@ -70,5 +81,4 @@ def format_weather(weather):
     return output
 
 
-weather = asyncio.run(get_city_weather('Москва'))
-print(weather)
+
