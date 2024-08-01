@@ -1,6 +1,7 @@
 import os
 import httpx
 import asyncio
+import logging
 
 from dotenv import load_dotenv
 
@@ -24,9 +25,11 @@ async def get_city_coordinates(city_name):
     }
 
     async with httpx.AsyncClient() as client:
-        response = await client.get(url, params=params)
-
-    return {"latitude": response.json()[0]['lat'], 'longitude': response.json()[0]['lon']}
+        try:
+            response = await client.get(url, params=params, timeout=10.0)
+            return {"latitude": response.json()[0]['lat'], 'longitude': response.json()[0]['lon']}
+        except httpx.ReadError as e:
+            logging.error(f"ReadError: {e}")
 
 
 async def get_location_weather(coordinates: dict):
@@ -35,13 +38,15 @@ async def get_location_weather(coordinates: dict):
         'lat': coordinates['latitude'],
         'lon': coordinates['longitude'],
         'appid': api_key,
-        'units': 'metric'  # Add this parameter to get temperature in Celsius
+        'units': 'metric'
     }
 
     async with httpx.AsyncClient() as client:
-        response = await client.get(url, params=params)
-
-    return response.json()['main']
+        try:
+            response = await client.get(url, params=params, timeout=10.0)
+            return response.json()['main']
+        except httpx.ReadError as e:
+            logging.error(f"ReadError: {e}")
 
 
 def format_weather(weather):
