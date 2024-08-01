@@ -1,9 +1,10 @@
 import os
 import httpx
 import asyncio
-import logging
 
 from dotenv import load_dotenv
+
+from app.bot_setup import logger
 
 load_dotenv()
 api_key = os.getenv('API_KEY')
@@ -11,9 +12,10 @@ api_key = os.getenv('API_KEY')
 
 async def get_city_weather(city_name):
     coordinates = await get_city_coordinates(city_name)
-    weather = await get_location_weather(coordinates)
-    formatted_weather = format_weather(weather)
-    return formatted_weather
+    if coordinates:
+        weather = await get_location_weather(coordinates)
+        formatted_weather = format_weather(weather)
+        return formatted_weather
 
 
 async def get_city_coordinates(city_name):
@@ -27,9 +29,10 @@ async def get_city_coordinates(city_name):
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(url, params=params, timeout=10.0)
-            return {"latitude": response.json()[0]['lat'], 'longitude': response.json()[0]['lon']}
-        except httpx.ReadError as e:
-            logging.error(f"ReadError: {e}")
+            if response.status_code == 200:
+                return {"latitude": response.json()[0]['lat'], 'longitude': response.json()[0]['lon']}
+        except Exception as e:
+            logger.error(f"ReadError: {str(e)}")
 
 
 async def get_location_weather(coordinates: dict):
@@ -44,9 +47,10 @@ async def get_location_weather(coordinates: dict):
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(url, params=params, timeout=10.0)
-            return response.json()['main']
-        except httpx.ReadError as e:
-            logging.error(f"ReadError: {e}")
+            if response.status_code == 200:
+                return response.json()['main']
+        except Exception as e:
+            logger.error(f"ReadError: {str(e)}")
 
 
 def format_weather(weather):

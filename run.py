@@ -1,12 +1,11 @@
 import asyncio
-import logging
 
 import app.handlers.commands as commands
 import app.handlers.forms as forms
 import app.handlers.inlines as inlines
 import app.handlers.texts as texts
 
-from app.bot_setup import bot, dp, scheduler
+from app.bot_setup import bot, dp, scheduler, logger
 from app.database import db_start, get_user_list
 
 
@@ -23,7 +22,7 @@ async def on_startup():
 
 
 async def main():
-    logging.basicConfig(level=logging.INFO)
+    logger.info("Starting bot...")
     dp.include_router(inlines.router)
     dp.include_router(forms.router)
     dp.include_router(commands.router)

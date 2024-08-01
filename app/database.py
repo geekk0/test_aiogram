@@ -1,6 +1,6 @@
-import os
 import sqlite3 as sq
-import logging
+
+from app.bot_setup import logger
 
 db = sq.connect('tg.db')
 
@@ -18,9 +18,9 @@ async def db_start():
     try:
         cur.execute(sql_query)
         db.commit()
-        logging.info("Table 'users' created successfully.")
+        logger.info("Table 'users' created successfully.")
     except Exception as e:
-        logging.error(f"Error creating table: {e}")
+        logger.error(f"Error creating table: {e}")
 
 
 async def save_user(user_id, name, age):

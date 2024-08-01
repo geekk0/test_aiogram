@@ -1,5 +1,3 @@
-import logging
-
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -7,6 +5,7 @@ from aiogram.types import Message, ChatPhoto
 from aiogram.filters import Command
 
 from app.database import save_user
+from app.bot_setup import logger
 
 router = Router()
 
@@ -65,5 +64,5 @@ async def handle_photo(message: Message, state: FSMContext):
                              f"Высота: {largest_photo.height} пикселей")
     else:
         await message.answer("Произошла ошибка, попробуйте позже")
-        logging.error(f"Invalid file type")
+        logger.error(f"Invalid file type")
     await state.clear()

@@ -1,16 +1,13 @@
-import logging
-
 from aiogram import Router
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from datetime import datetime, timedelta
 
-
 from app.keyboards import main
 from app.database import get_user_list
 from app.middleware import ReminderMiddleware
 from app.weather_api import get_city_weather
-from app.bot_setup import bot, scheduler
+from app.bot_setup import bot, scheduler, logger
 
 
 router = Router()
@@ -28,7 +25,6 @@ user_reminders = {}
 
 @router.message(CommandStart())
 async def start_command(message: Message):
-    print(f'hello: {message.from_user.full_name}')
     await message.answer("Добро пожаловать в наш бот!", reply_markup=main)
 
 
@@ -65,7 +61,7 @@ async def show_weather(message: Message):
         await message.answer(str(city_weather))
     except Exception as e:
         await message.answer("Произошла ошибка, попробуйте позже")
-        logging.error(e)
+        logger.error(e)
 
 
 @router.message(Command("reminder"))
