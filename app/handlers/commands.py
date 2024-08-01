@@ -55,12 +55,16 @@ async def show_users_list(message: Message):
 
 @router.message(Command("weather"))
 async def show_weather(message: Message):
+    city_name = message.text.replace('/weather ', '')
+    logger.debug(f'city name: {city_name}')
     try:
-        city_name = message.text.replace('/weather ', '')
         city_weather = await get_city_weather(city_name)
-        await message.answer(str(city_weather))
+        if city_weather:
+            await message.answer(str(city_weather))
+        else:
+            await send_error_message(message)
     except Exception as e:
-        await message.answer("Произошла ошибка, попробуйте позже")
+        await send_error_message(message)
         logger.error(e)
 
 
@@ -89,6 +93,10 @@ async def handle_message(message: Message):
 async def send_reminder(user_id):
     user_reminders.pop(user_id, None)
     await bot.send_message(user_id, "Вы забыли ответить")
+
+
+async def send_error_message(message: Message):
+    await message.answer("Произошла ошибка, попробуйте позже")
 
 
 router.message.middleware(ReminderMiddleware(scheduler, user_reminders))

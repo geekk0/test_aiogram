@@ -20,15 +20,21 @@ async def get_city_weather(city_name):
 
 async def get_city_coordinates(city_name):
     url = 'http://api.openweathermap.org/geo/1.0/direct'
+
     params = {
         'q': city_name,
         'limit': 5,
         'appid': api_key
     }
 
+    headers = {
+        'Accept': 'application/json',
+        'User-Agent': 'test_aiogram'
+    }
+
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.get(url, params=params, timeout=10.0)
+            response = await client.get(url, params=params, headers=headers, timeout=10.0)
             if response.status_code == 200:
                 return {"latitude": response.json()[0]['lat'], 'longitude': response.json()[0]['lon']}
         except Exception as e:
@@ -44,9 +50,14 @@ async def get_location_weather(coordinates: dict):
         'units': 'metric'
     }
 
+    headers = {
+        'Accept': 'application/json',
+        'User-Agent': 'test_aiogram'
+    }
+
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.get(url, params=params, timeout=10.0)
+            response = await client.get(url, params=params, headers=headers, timeout=10.0)
             if response.status_code == 200:
                 return response.json()['main']
         except Exception as e:
@@ -59,5 +70,5 @@ def format_weather(weather):
     return output
 
 
-# weather = asyncio.run(get_city_weather('Москва'))
-# print(weather)
+weather = asyncio.run(get_city_weather('Москва'))
+print(weather)
